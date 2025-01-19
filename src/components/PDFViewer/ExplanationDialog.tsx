@@ -8,7 +8,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Bookmark } from "lucide-react";
+import { Download, Languages, MessageSquareText } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ExplanationDialogProps {
@@ -17,6 +17,7 @@ interface ExplanationDialogProps {
   content: string;
   onSaveContent: () => void;
   onSaveNote: () => void;
+  type?: 'translation' | 'explanation';
 }
 
 const ExplanationDialog = ({
@@ -24,9 +25,9 @@ const ExplanationDialog = ({
   onOpenChange,
   content,
   onSaveContent,
-  onSaveNote
+  onSaveNote,
+  type = 'explanation'
 }: ExplanationDialogProps) => {
-  // Function to format the content with proper line breaks
   const formatContent = (text: string) => {
     return text.split('\n').map((line, index) => (
       <React.Fragment key={index}>
@@ -40,7 +41,9 @@ const ExplanationDialog = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle className="text-right">الشرح</DialogTitle>
+          <DialogTitle className="text-right">
+            {type === 'translation' ? 'الترجمة' : 'الشرح'}
+          </DialogTitle>
         </DialogHeader>
         <ScrollArea className="h-[50vh] w-full rounded-md border p-4">
           <DialogDescription className="text-right whitespace-pre-wrap leading-relaxed">
@@ -53,7 +56,11 @@ const ExplanationDialog = ({
             حفظ كملف
           </Button>
           <Button onClick={onSaveNote} variant="secondary" className="gap-2">
-            <Bookmark className="h-4 w-4" />
+            {type === 'translation' ? (
+              <Languages className="h-4 w-4" />
+            ) : (
+              <MessageSquareText className="h-4 w-4" />
+            )}
             حفظ كملاحظة
           </Button>
         </DialogFooter>

@@ -23,9 +23,14 @@ interface Question {
   explanation?: string;
 }
 
+interface Note {
+  type: 'translation' | 'explanation';
+  content: string;
+}
+
 interface PageNote {
   pageNumber: number;
-  content: string;
+  notes: Note[];
 }
 
 const PDFViewer = ({ url }: PDFViewerProps) => {
@@ -158,23 +163,57 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
   };
 
   const handleSaveNote = () => {
-    const newNote: PageNote = {
-      pageNumber: currentPage,
+    const newNote: Note = {
+      type: 'explanation',
       content: explanationContent
     };
     
     setPageNotes(prev => {
-      const filtered = prev.filter(note => note.pageNumber !== currentPage);
-      return [...filtered, newNote];
+      const existingPageNoteIndex = prev.findIndex(note => note.pageNumber === currentPage);
+      
+      if (existingPageNoteIndex >= 0) {
+        const updatedNotes = [...prev];
+        updatedNotes[existingPageNoteIndex] = {
+          ...updatedNotes[existingPageNoteIndex],
+          notes: [...updatedNotes[existingPageNoteIndex].notes, newNote]
+        };
+        return updatedNotes;
+      }
+      
+      return [...prev, { pageNumber: currentPage, notes: [newNote] }];
     });
-    
+
     toast({
       title: "تم حفظ الملاحظة",
       description: `تم حفظ الشرح كملاحظة للصفحة ${currentPage}`,
     });
+  };
+
+  const handleTranslationNote = (translationContent: string) => {
+    const newNote: Note = {
+      type: 'translation',
+      content: translationContent
+    };
     
-    const updatedNotes = [...pageNotes.filter(note => note.pageNumber !== currentPage), newNote];
-    localStorage.setItem(`pdf-notes-${url}`, JSON.stringify(updatedNotes));
+    setPageNotes(prev => {
+      const existingPageNoteIndex = prev.findIndex(note => note.pageNumber === currentPage);
+      
+      if (existingPageNoteIndex >= 0) {
+        const updatedNotes = [...prev];
+        updatedNotes[existingPageNoteIndex] = {
+          ...updatedNotes[existingPageNoteIndex],
+          notes: [...updatedNotes[existingPageNoteIndex].notes, newNote]
+        };
+        return updatedNotes;
+      }
+      
+      return [...prev, { pageNumber: currentPage, notes: [newNote] }];
+    });
+
+    toast({
+      title: "تم حفظ الملاحظة",
+      description: `تم حفظ الترجمة كملاحظة للصفحة ${currentPage}`,
+    });
   };
 
   useEffect(() => {
@@ -183,6 +222,10 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
       setPageNotes(JSON.parse(savedNotes));
     }
   }, [url]);
+
+  useEffect(() => {
+    localStorage.setItem(`pdf-notes-${url}`, JSON.stringify(pageNotes));
+  }, [pageNotes, url]);
 
   const getCurrentPageNote = () => {
     return pageNotes.find(note => note.pageNumber === currentPage);
