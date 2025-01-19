@@ -95,6 +95,7 @@ const PDFControls = ({
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200 p-4">
       <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="icon"
@@ -190,7 +191,7 @@ const PDFControls = ({
               <Button 
                 variant="outline" 
                 size="icon"
-                onClick={() => onTranslate(selectedLanguage, translationInstructions)}
+                onClick={handleTranslateClick}
                 disabled={!selectedLanguage}
               >
                 <Languages className="h-4 w-4" />
@@ -206,7 +207,7 @@ const PDFControls = ({
               <Button 
                 variant="outline" 
                 size="icon"
-                onClick={() => onExplain(selectedStyle, explanationInstructions)}
+                onClick={handleExplainClick}
                 disabled={!selectedStyle}
               >
                 <MessageSquareText className="h-4 w-4" />
@@ -249,7 +250,6 @@ const PDFControls = ({
           >
             <Plus className="h-4 w-4" />
           </Button>
-
         </div>
       </div>
     </div>
