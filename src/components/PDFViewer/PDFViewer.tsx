@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
+import { pdfjs } from 'react-pdf';
 import { useToast } from "@/hooks/use-toast";
 import PDFControls from './PDFControls';
 import QuizModal from './QuizModal';
+import PDFDocument from './PDFDocument';
+import PDFNotes from './PDFNotes';
+import ExplanationDialog from './ExplanationDialog';
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Download, Bookmark } from "lucide-react";
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -171,7 +164,6 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
     };
     
     setPageNotes(prev => {
-      // Remove any existing note for this page
       const filtered = prev.filter(note => note.pageNumber !== currentPage);
       return [...filtered, newNote];
     });
@@ -181,12 +173,10 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
       description: `تم حفظ الشرح كملاحظة للصفحة ${currentPage}`,
     });
     
-    // Save to localStorage
     const updatedNotes = [...pageNotes.filter(note => note.pageNumber !== currentPage), newNote];
     localStorage.setItem(`pdf-notes-${url}`, JSON.stringify(updatedNotes));
   };
 
-  // Load notes from localStorage when component mounts or URL changes
   useEffect(() => {
     const savedNotes = localStorage.getItem(`pdf-notes-${url}`);
     if (savedNotes) {
@@ -211,37 +201,21 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-100 pt-8 pb-24">
+    <div className="min-h-screen bg-gray-100 pt-8 pb-24">
       <div className="max-w-5xl mx-auto px-4">
-        {isLoading && (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900" />
-          </div>
-        )}
-        
-        <Document
-          file={url}
+        <PDFDocument
+          url={url}
+          currentPage={currentPage}
+          scale={scale}
+          isLoading={isLoading}
           onLoadSuccess={onDocumentLoadSuccess}
           onLoadError={onDocumentLoadError}
-          loading={null}
-        >
-          <Page
-            pageNumber={currentPage}
-            scale={scale}
-            loading={null}
-            className="shadow-md"
-          />
-        </Document>
+        />
 
-        {getCurrentPageNote() && (
-          <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Bookmark className="h-4 w-4 text-yellow-600" />
-              <h3 className="font-medium text-yellow-800">ملاحظات الصفحة {currentPage}</h3>
-            </div>
-            <p className="text-sm text-yellow-900">{getCurrentPageNote()?.content}</p>
-          </div>
-        )}
+        <PDFNotes
+          currentNote={getCurrentPageNote()}
+          currentPage={currentPage}
+        />
 
         {numPages > 0 && (
           <PDFControls
@@ -265,26 +239,13 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
           questions={quizQuestions}
         />
 
-        <Dialog open={showExplanationDialog} onOpenChange={setShowExplanationDialog}>
-          <DialogContent className="max-w-4xl max-h-[80vh]">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold mb-4">الشرح</DialogTitle>
-              <DialogDescription className="text-lg leading-relaxed overflow-y-auto max-h-[60vh] p-4 bg-gray-50 rounded-lg">
-                {explanationContent}
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="mt-4 flex gap-2">
-              <Button onClick={handleSaveContent} className="gap-2">
-                <Download className="h-4 w-4" />
-                حفظ كملف
-              </Button>
-              <Button onClick={handleSaveNote} variant="secondary" className="gap-2">
-                <Bookmark className="h-4 w-4" />
-                حفظ كملاحظة
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ExplanationDialog
+          isOpen={showExplanationDialog}
+          onOpenChange={setShowExplanationDialog}
+          content={explanationContent}
+          onSaveContent={handleSaveContent}
+          onSaveNote={handleSaveNote}
+        />
       </div>
     </div>
   );
