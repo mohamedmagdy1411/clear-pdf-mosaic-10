@@ -28,6 +28,12 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
   const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
   const [isQuizModalOpen, setIsQuizModalOpen] = useState<boolean>(false);
   const { toast } = useToast();
+  const [showExplanationDialog, setShowExplanationDialog] = useState(false);
+  const [explanationContent, setExplanationContent] = useState("");
+  const [quizSettings, setQuizSettings] = useState({
+    numberOfQuestions: 3,
+    difficulty: 'medium'
+  });
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -69,7 +75,9 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
   const handleGeminiAction = async (action: 'translate' | 'explain' | 'quiz', options?: { 
     language?: string, 
     style?: string,
-    instructions?: string 
+    instructions?: string,
+    numberOfQuestions?: number,
+    difficulty?: string
   }) => {
     try {
       const pageText = await getPageText(currentPage);
@@ -77,8 +85,8 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
       if (!pageText) {
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Could not extract text from this page.",
+          title: "خطأ",
+          description: "لم نتمكن من استخراج النص من هذه الصفحة",
         });
         return;
       }
@@ -87,7 +95,11 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
         body: { 
           text: pageText,
           action,
-          options
+          options: {
+            ...options,
+            numberOfQuestions: options?.numberOfQuestions || 3,
+            difficulty: options?.difficulty || 'medium'
+          }
         }
       });
 
@@ -105,26 +117,20 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
           console.error('Quiz parsing error:', e);
           toast({
             variant: "destructive",
-            title: "Error parsing quiz",
-            description: "Could not generate quiz questions. Please try again.",
+            title: "خطأ في إنشاء الاختبار",
+            description: "برجاء المحاولة مرة أخرى",
           });
         }
       } else {
-        toast({
-          title: action === 'translate' 
-            ? `Translation (${options?.language})` 
-            : `Explanation (${options?.style})`,
-          description: data.result,
-          duration: 10000,
-          className: "max-w-[500px] whitespace-pre-wrap",
-        });
+        setExplanationContent(data.result);
+        setShowExplanationDialog(true);
       }
     } catch (error) {
       console.error(`${action} error:`, error);
       toast({
         variant: "destructive",
-        title: `${action.charAt(0).toUpperCase() + action.slice(1)} Error`,
-        description: `Could not ${action} the text. Please try again later.`,
+        title: `خطأ`,
+        description: `حدث خطأ. برجاء المحاولة مرة أخرى`,
       });
     }
   };
@@ -144,7 +150,6 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
   return (
     <div className="min-h-screen bg-gray-100 pt-8 pb-24">
       <div className="max-w-5xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 min-h-[calc(100vh-16rem)] flex flex-col items-center">
           {isLoading && (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
@@ -178,6 +183,8 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
           onTranslate={handleTranslate}
           onExplain={handleExplain}
           onGenerateQuiz={handleGenerateQuiz}
+          quizSettings={quizSettings}
+          onQuizSettingsChange={setQuizSettings}
         />
       )}
 
@@ -186,6 +193,17 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
         onClose={() => setIsQuizModalOpen(false)}
         questions={quizQuestions}
       />
+
+      <Dialog open={showExplanationDialog} onOpenChange={setShowExplanationDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>الشرح</DialogTitle>
+            <DialogDescription>
+              {explanationContent}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

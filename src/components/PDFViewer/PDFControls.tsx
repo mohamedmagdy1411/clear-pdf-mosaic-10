@@ -55,7 +55,18 @@ interface PDFControlsProps {
   onTranslate: (language: string, instructions?: string) => void;
   onExplain: (style: string, instructions?: string) => void;
   onGenerateQuiz: () => void;
+  quizSettings: {
+    numberOfQuestions: number;
+    difficulty: string;
+  };
+  onQuizSettingsChange: (settings: { numberOfQuestions: number; difficulty: string }) => void;
 }
+
+const QUIZ_DIFFICULTIES = [
+  { label: 'سهل', value: 'easy' },
+  { label: 'متوسط', value: 'medium' },
+  { label: 'صعب', value: 'hard' }
+];
 
 const PDFControls = ({
   numPages,
@@ -66,7 +77,9 @@ const PDFControls = ({
   onZoomOut,
   onTranslate,
   onExplain,
-  onGenerateQuiz
+  onGenerateQuiz,
+  quizSettings,
+  onQuizSettingsChange
 }: PDFControlsProps) => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [selectedStyle, setSelectedStyle] = useState<string>('');
@@ -136,14 +149,14 @@ const PDFControls = ({
             </SheetTrigger>
             <SheetContent className="w-[400px]">
               <SheetHeader>
-                <SheetTitle>Translation & Explanation Settings</SheetTitle>
+                <SheetTitle>إعدادات الترجمة والشرح</SheetTitle>
               </SheetHeader>
               <div className="space-y-6 mt-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Translation Language</label>
+                  <label className="text-sm font-medium">لغة الترجمة</label>
                   <Select onValueChange={setSelectedLanguage} value={selectedLanguage}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select language" />
+                      <SelectValue placeholder="اختر اللغة" />
                     </SelectTrigger>
                     <SelectContent>
                       {LANGUAGES.map((lang) => (
@@ -154,7 +167,7 @@ const PDFControls = ({
                     </SelectContent>
                   </Select>
                   <Textarea
-                    placeholder="Enter any specific translation instructions or preferences..."
+                    placeholder="أدخل أي تعليمات خاصة بالترجمة..."
                     value={translationInstructions}
                     onChange={(e) => setTranslationInstructions(e.target.value)}
                     className="mt-2"
@@ -162,10 +175,10 @@ const PDFControls = ({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Explanation Style</label>
+                  <label className="text-sm font-medium">نمط الشرح</label>
                   <Select onValueChange={setSelectedStyle} value={selectedStyle}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select style" />
+                      <SelectValue placeholder="اختر النمط" />
                     </SelectTrigger>
                     <SelectContent>
                       {EXPLANATION_STYLES.map((style) => (
@@ -176,11 +189,51 @@ const PDFControls = ({
                     </SelectContent>
                   </Select>
                   <Textarea
-                    placeholder="Enter any specific explanation instructions or preferences..."
+                    placeholder="أدخل أي تعليمات خاصة بالشرح..."
                     value={explanationInstructions}
                     onChange={(e) => setExplanationInstructions(e.target.value)}
                     className="mt-2"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">إعدادات الاختبار</label>
+                  <div className="grid gap-4">
+                    <div>
+                      <label className="text-sm text-gray-500">عدد الأسئلة</label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={quizSettings.numberOfQuestions}
+                        onChange={(e) => onQuizSettingsChange({
+                          ...quizSettings,
+                          numberOfQuestions: parseInt(e.target.value)
+                        })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-500">مستوى الصعوبة</label>
+                      <Select 
+                        value={quizSettings.difficulty}
+                        onValueChange={(value) => onQuizSettingsChange({
+                          ...quizSettings,
+                          difficulty: value
+                        })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر المستوى" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {QUIZ_DIFFICULTIES.map((diff) => (
+                            <SelectItem key={diff.value} value={diff.value}>
+                              {diff.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
               </div>
             </SheetContent>
