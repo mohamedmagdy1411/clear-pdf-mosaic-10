@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useToast } from "@/hooks/use-toast";
 import PDFControls from './PDFControls';
@@ -10,7 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -98,13 +101,15 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
         return;
       }
 
+      console.log('Sending request with options:', options);
+
       const { data, error } = await supabase.functions.invoke('gemini-ai', {
         body: { 
           text: pageText,
           action,
           options: {
             ...options,
-            numberOfQuestions: options?.numberOfQuestions || 3,
+            numberOfQuestions: Number(options?.numberOfQuestions) || 3,
             difficulty: options?.difficulty || 'medium'
           }
         }
@@ -118,6 +123,7 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
       if (action === 'quiz') {
         try {
           const questions = JSON.parse(data.result);
+          console.log('Parsed quiz questions:', questions);
           setQuizQuestions(questions);
           setIsQuizModalOpen(true);
         } catch (e) {
@@ -136,10 +142,20 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
       console.error(`${action} error:`, error);
       toast({
         variant: "destructive",
-        title: `خطأ`,
-        description: `حدث خطأ. برجاء المحاولة مرة أخرى`,
+        title: "خطأ",
+        description: "حدث خطأ. برجاء المحاولة مرة أخرى",
       });
     }
+  };
+
+  const handleSaveContent = () => {
+    const element = document.createElement("a");
+    const file = new Blob([explanationContent], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = "content.txt";
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
   };
 
   const handleTranslate = (language: string, instructions?: string) => 
@@ -200,13 +216,19 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
         />
 
         <Dialog open={showExplanationDialog} onOpenChange={setShowExplanationDialog}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[80vh]">
             <DialogHeader>
-              <DialogTitle>الشرح</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-xl font-bold mb-4">الشرح</DialogTitle>
+              <DialogDescription className="text-lg leading-relaxed overflow-y-auto max-h-[60vh] p-4 bg-gray-50 rounded-lg">
                 {explanationContent}
               </DialogDescription>
             </DialogHeader>
+            <DialogFooter className="mt-4">
+              <Button onClick={handleSaveContent} className="gap-2">
+                <Download className="h-4 w-4" />
+                حفظ المحتوى
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
