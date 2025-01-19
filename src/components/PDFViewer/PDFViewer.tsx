@@ -33,10 +33,22 @@ interface PageNote {
   notes: Note[];
 }
 
+interface PDFState {
+  currentPage: number;
+  scale: number;
+  pageNotes: PageNote[];
+}
+
 const PDFViewer = ({ url }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [scale, setScale] = useState<number>(1);
+  const [currentPage, setCurrentPage] = useState<number>(() => {
+    const savedState = localStorage.getItem(`pdf-state-${url}`);
+    return savedState ? JSON.parse(savedState).currentPage : 1;
+  });
+  const [scale, setScale] = useState<number>(() => {
+    const savedState = localStorage.getItem(`pdf-state-${url}`);
+    return savedState ? JSON.parse(savedState).scale : 1;
+  });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
   const [isQuizModalOpen, setIsQuizModalOpen] = useState<boolean>(false);
@@ -47,7 +59,20 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
     numberOfQuestions: 3,
     difficulty: 'medium'
   });
-  const [pageNotes, setPageNotes] = useState<PageNote[]>([]);
+  const [pageNotes, setPageNotes] = useState<PageNote[]>(() => {
+    const savedState = localStorage.getItem(`pdf-state-${url}`);
+    return savedState ? JSON.parse(savedState).pageNotes : [];
+  });
+
+  // Save PDF state to localStorage whenever it changes
+  useEffect(() => {
+    const state: PDFState = {
+      currentPage,
+      scale,
+      pageNotes
+    };
+    localStorage.setItem(`pdf-state-${url}`, JSON.stringify(state));
+  }, [currentPage, scale, pageNotes, url]);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
