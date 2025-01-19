@@ -132,14 +132,14 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
 
       console.log('Sending request with options:', options);
 
-      // Add default Arabic instructions for explanations
+      // Add default Arabic instructions for explanations and use the actual number of questions
       const enhancedOptions = {
         ...options,
         instructions: action === 'explain' ? 
           'اشرح هذا النص باللغة العربية بشكل مفصل ومفهوم' : 
           options?.instructions,
-        numberOfQuestions: Number(options?.numberOfQuestions) || 3,
-        difficulty: options?.difficulty || 'medium'
+        numberOfQuestions: options?.numberOfQuestions || quizSettings.numberOfQuestions,
+        difficulty: options?.difficulty || quizSettings.difficulty
       };
 
       const { data, error } = await supabase.functions.invoke('gemini-ai', {
