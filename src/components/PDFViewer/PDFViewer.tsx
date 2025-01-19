@@ -4,6 +4,13 @@ import { useToast } from "@/hooks/use-toast";
 import PDFControls from './PDFControls';
 import QuizModal from './QuizModal';
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -148,62 +155,61 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 pt-8 pb-24">
+    <div className="relative min-h-screen bg-gray-100 pt-8 pb-24">
       <div className="max-w-5xl mx-auto px-4">
-          {isLoading && (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-            </div>
-          )}
-          
-          <Document
-            file={url}
-            onLoadSuccess={onDocumentLoadSuccess}
-            onLoadError={onDocumentLoadError}
+        {isLoading && (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900" />
+          </div>
+        )}
+        
+        <Document
+          file={url}
+          onLoadSuccess={onDocumentLoadSuccess}
+          onLoadError={onDocumentLoadError}
+          loading={null}
+        >
+          <Page
+            pageNumber={currentPage}
+            scale={scale}
             loading={null}
-          >
-            <Page
-              pageNumber={currentPage}
-              scale={scale}
-              loading={null}
-              className="shadow-md"
-            />
-          </Document>
-        </div>
-      </div>
+            className="shadow-md"
+          />
+        </Document>
 
-      {numPages > 0 && (
-        <PDFControls
-          numPages={numPages}
-          currentPage={currentPage}
-          scale={scale}
-          onPageChange={handlePageChange}
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
-          onTranslate={handleTranslate}
-          onExplain={handleExplain}
-          onGenerateQuiz={handleGenerateQuiz}
-          quizSettings={quizSettings}
-          onQuizSettingsChange={setQuizSettings}
+        {numPages > 0 && (
+          <PDFControls
+            numPages={numPages}
+            currentPage={currentPage}
+            scale={scale}
+            onPageChange={handlePageChange}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onTranslate={handleTranslate}
+            onExplain={handleExplain}
+            onGenerateQuiz={handleGenerateQuiz}
+            quizSettings={quizSettings}
+            onQuizSettingsChange={setQuizSettings}
+          />
+        )}
+
+        <QuizModal
+          isOpen={isQuizModalOpen}
+          onClose={() => setIsQuizModalOpen(false)}
+          questions={quizQuestions}
         />
-      )}
 
-      <QuizModal
-        isOpen={isQuizModalOpen}
-        onClose={() => setIsQuizModalOpen(false)}
-        questions={quizQuestions}
-      />
-
-      <Dialog open={showExplanationDialog} onOpenChange={setShowExplanationDialog}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>الشرح</DialogTitle>
-            <DialogDescription>
-              {explanationContent}
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+        <Dialog open={showExplanationDialog} onOpenChange={setShowExplanationDialog}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>الشرح</DialogTitle>
+              <DialogDescription>
+                {explanationContent}
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };
