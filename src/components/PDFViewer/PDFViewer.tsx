@@ -13,7 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Bookmark } from "lucide-react";
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -30,6 +30,11 @@ interface Question {
   explanation?: string;
 }
 
+interface PageNote {
+  pageNumber: number;
+  content: string;
+}
+
 const PDFViewer = ({ url }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -44,6 +49,7 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
     numberOfQuestions: 3,
     difficulty: 'medium'
   });
+  const [pageNotes, setPageNotes] = useState<PageNote[]>([]);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -158,6 +164,40 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
     document.body.removeChild(element);
   };
 
+  const handleSaveNote = () => {
+    const newNote: PageNote = {
+      pageNumber: currentPage,
+      content: explanationContent
+    };
+    
+    setPageNotes(prev => {
+      // Remove any existing note for this page
+      const filtered = prev.filter(note => note.pageNumber !== currentPage);
+      return [...filtered, newNote];
+    });
+    
+    toast({
+      title: "تم حفظ الملاحظة",
+      description: `تم حفظ الشرح كملاحظة للصفحة ${currentPage}`,
+    });
+    
+    // Save to localStorage
+    const updatedNotes = [...pageNotes.filter(note => note.pageNumber !== currentPage), newNote];
+    localStorage.setItem(`pdf-notes-${url}`, JSON.stringify(updatedNotes));
+  };
+
+  // Load notes from localStorage when component mounts or URL changes
+  useEffect(() => {
+    const savedNotes = localStorage.getItem(`pdf-notes-${url}`);
+    if (savedNotes) {
+      setPageNotes(JSON.parse(savedNotes));
+    }
+  }, [url]);
+
+  const getCurrentPageNote = () => {
+    return pageNotes.find(note => note.pageNumber === currentPage);
+  };
+
   const handleTranslate = (language: string, instructions?: string) => 
     handleGeminiAction('translate', { language, instructions });
     
@@ -193,6 +233,16 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
           />
         </Document>
 
+        {getCurrentPageNote() && (
+          <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Bookmark className="h-4 w-4 text-yellow-600" />
+              <h3 className="font-medium text-yellow-800">ملاحظات الصفحة {currentPage}</h3>
+            </div>
+            <p className="text-sm text-yellow-900">{getCurrentPageNote()?.content}</p>
+          </div>
+        )}
+
         {numPages > 0 && (
           <PDFControls
             numPages={numPages}
@@ -223,10 +273,14 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
                 {explanationContent}
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter className="mt-4">
+            <DialogFooter className="mt-4 flex gap-2">
               <Button onClick={handleSaveContent} className="gap-2">
                 <Download className="h-4 w-4" />
-                حفظ المحتوى
+                حفظ كملف
+              </Button>
+              <Button onClick={handleSaveNote} variant="secondary" className="gap-2">
+                <Bookmark className="h-4 w-4" />
+                حفظ كملاحظة
               </Button>
             </DialogFooter>
           </DialogContent>
