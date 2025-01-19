@@ -83,7 +83,6 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
         return;
       }
 
-      // Make sure we're using the correct Supabase function URL
       const { data, error } = await supabase.functions.invoke('gemini-ai', {
         body: { 
           text: pageText,
@@ -117,6 +116,7 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
             : `Explanation (${options?.style})`,
           description: data.result,
           duration: 10000,
+          className: "max-w-[500px] whitespace-pre-wrap",
         });
       }
     } catch (error) {

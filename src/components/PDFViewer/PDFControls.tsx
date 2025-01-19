@@ -32,6 +32,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const LANGUAGES = [
+  'English', 'Arabic', 'Egyptian Arabic', 'Spanish', 'French', 'German', 'Italian', 'Portuguese',
+  'Chinese', 'Japanese', 'Korean', 'Russian', 'Hindi'
+];
+
+const EXPLANATION_STYLES = [
+  { label: 'Simple', value: 'simple' },
+  { label: 'Technical', value: 'technical' },
+  { label: 'Academic', value: 'academic' },
+  { label: 'Egyptian Dialect', value: 'egyptian' },
+  { label: 'Arabic Formal', value: 'arabic_formal' }
+];
+
 interface PDFControlsProps {
   numPages: number;
   currentPage: number;
@@ -43,17 +56,6 @@ interface PDFControlsProps {
   onExplain: (style: string, instructions?: string) => void;
   onGenerateQuiz: () => void;
 }
-
-const LANGUAGES = [
-  'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese',
-  'Chinese', 'Japanese', 'Korean', 'Russian', 'Arabic', 'Hindi'
-];
-
-const EXPLANATION_STYLES = [
-  { label: 'Simple', value: 'simple' },
-  { label: 'Technical', value: 'technical' },
-  { label: 'Academic', value: 'academic' },
-];
 
 const PDFControls = ({
   numPages,
@@ -93,7 +95,6 @@ const PDFControls = ({
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200 p-4">
       <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="icon"
@@ -126,12 +127,70 @@ const PDFControls = ({
         </div>
 
         <div className="flex items-center gap-2">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Settings2 className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="w-[400px]">
+              <SheetHeader>
+                <SheetTitle>Translation & Explanation Settings</SheetTitle>
+              </SheetHeader>
+              <div className="space-y-6 mt-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Translation Language</label>
+                  <Select onValueChange={setSelectedLanguage} value={selectedLanguage}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LANGUAGES.map((lang) => (
+                        <SelectItem key={lang} value={lang}>
+                          {lang}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Textarea
+                    placeholder="Enter any specific translation instructions or preferences..."
+                    value={translationInstructions}
+                    onChange={(e) => setTranslationInstructions(e.target.value)}
+                    className="mt-2"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Explanation Style</label>
+                  <Select onValueChange={setSelectedStyle} value={selectedStyle}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select style" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EXPLANATION_STYLES.map((style) => (
+                        <SelectItem key={style.value} value={style.value}>
+                          {style.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Textarea
+                    placeholder="Enter any specific explanation instructions or preferences..."
+                    value={explanationInstructions}
+                    onChange={(e) => setExplanationInstructions(e.target.value)}
+                    className="mt-2"
+                  />
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
                 variant="outline" 
                 size="icon"
-                onClick={handleTranslateClick}
+                onClick={() => onTranslate(selectedLanguage, translationInstructions)}
                 disabled={!selectedLanguage}
               >
                 <Languages className="h-4 w-4" />
@@ -147,7 +206,7 @@ const PDFControls = ({
               <Button 
                 variant="outline" 
                 size="icon"
-                onClick={handleExplainClick}
+                onClick={() => onExplain(selectedStyle, explanationInstructions)}
                 disabled={!selectedStyle}
               >
                 <MessageSquareText className="h-4 w-4" />
@@ -191,65 +250,6 @@ const PDFControls = ({
             <Plus className="h-4 w-4" />
           </Button>
 
-          <div className="border-l border-gray-200 mx-2 h-6" />
-
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Settings2 className="h-4 w-4" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Settings</SheetTitle>
-              </SheetHeader>
-              <div className="space-y-6 mt-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Translation Language</label>
-                  <Select onValueChange={setSelectedLanguage} value={selectedLanguage}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LANGUAGES.map((lang) => (
-                        <SelectItem key={lang} value={lang}>
-                          {lang}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Textarea
-                    placeholder="Enter translation instructions..."
-                    value={translationInstructions}
-                    onChange={(e) => setTranslationInstructions(e.target.value)}
-                    className="mt-2"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Explanation Style</label>
-                  <Select onValueChange={setSelectedStyle} value={selectedStyle}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select style" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EXPLANATION_STYLES.map((style) => (
-                        <SelectItem key={style.value} value={style.value}>
-                          {style.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Textarea
-                    placeholder="Enter explanation instructions..."
-                    value={explanationInstructions}
-                    onChange={(e) => setExplanationInstructions(e.target.value)}
-                    className="mt-2"
-                  />
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
         </div>
       </div>
     </div>
