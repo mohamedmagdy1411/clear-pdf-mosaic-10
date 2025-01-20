@@ -8,8 +8,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Languages,
-  MessageSquareText,
-  BrainCircuit,
   Settings2
 } from "lucide-react";
 import {
@@ -37,12 +35,6 @@ const LANGUAGES = [
   'Chinese', 'Japanese', 'Korean', 'Russian', 'Hindi'
 ];
 
-const QUIZ_DIFFICULTIES = [
-  { label: 'سهل', value: 'easy' },
-  { label: 'متوسط', value: 'medium' },
-  { label: 'صعب', value: 'hard' }
-];
-
 interface PDFControlsProps {
   numPages: number;
   currentPage: number;
@@ -51,13 +43,6 @@ interface PDFControlsProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
   onTranslate: (language: string, instructions?: string) => void;
-  onExplain: (style: string, instructions?: string) => void;
-  onGenerateQuiz: () => void;
-  quizSettings: {
-    numberOfQuestions: number;
-    difficulty: string;
-  };
-  onQuizSettingsChange: (settings: { numberOfQuestions: number; difficulty: string }) => void;
 }
 
 const PDFControls = ({
@@ -68,14 +53,9 @@ const PDFControls = ({
   onZoomIn,
   onZoomOut,
   onTranslate,
-  onExplain,
-  onGenerateQuiz,
-  quizSettings,
-  onQuizSettingsChange
 }: PDFControlsProps) => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [translationInstructions, setTranslationInstructions] = useState('');
-  const [explanationInstructions, setExplanationInstructions] = useState('');
 
   const handlePageInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
@@ -87,12 +67,6 @@ const PDFControls = ({
   const handleTranslateClick = () => {
     if (selectedLanguage) {
       onTranslate(selectedLanguage, translationInstructions);
-    }
-  };
-
-  const handleExplainClick = () => {
-    if (explanationInstructions) {
-      onExplain('custom', explanationInstructions);
     }
   };
 
@@ -140,7 +114,7 @@ const PDFControls = ({
             </SheetTrigger>
             <SheetContent className="w-[400px]">
               <SheetHeader>
-                <SheetTitle>إعدادات الترجمة والشرح</SheetTitle>
+                <SheetTitle>إعدادات الترجمة</SheetTitle>
               </SheetHeader>
               <div className="space-y-6 mt-6">
                 <div className="space-y-2">
@@ -164,56 +138,6 @@ const PDFControls = ({
                     className="mt-2"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">تعليمات الشرح</label>
-                  <Textarea
-                    placeholder="اكتب كيف تريد أن يتم الشرح (مثال: اشرح باللهجة المصرية)"
-                    value={explanationInstructions}
-                    onChange={(e) => setExplanationInstructions(e.target.value)}
-                    className="mt-2"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">إعدادات الاختبار</label>
-                  <div className="grid gap-4">
-                    <div>
-                      <label className="text-sm text-gray-500">عدد الأسئلة</label>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={10}
-                        value={quizSettings.numberOfQuestions}
-                        onChange={(e) => onQuizSettingsChange({
-                          ...quizSettings,
-                          numberOfQuestions: parseInt(e.target.value)
-                        })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-500">مستوى الصعوبة</label>
-                      <Select 
-                        value={quizSettings.difficulty}
-                        onValueChange={(value) => onQuizSettingsChange({
-                          ...quizSettings,
-                          difficulty: value
-                        })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر المستوى" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {QUIZ_DIFFICULTIES.map((diff) => (
-                            <SelectItem key={diff.value} value={diff.value}>
-                              {diff.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
               </div>
             </SheetContent>
           </Sheet>
@@ -231,33 +155,6 @@ const PDFControls = ({
             </TooltipTrigger>
             <TooltipContent>
               <p>Translate this page</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={handleExplainClick}
-                disabled={!explanationInstructions}
-              >
-                <MessageSquareText className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Get an explanation</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" onClick={onGenerateQuiz}>
-                <BrainCircuit className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Generate interactive quiz</p>
             </TooltipContent>
           </Tooltip>
 

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { pdfjs } from 'react-pdf';
 import PDFControls from './PDFControls';
-import QuizModal from './QuizModal';
 import PDFDocument from './PDFDocument';
 import PDFNotes from './PDFNotes';
 import ExplanationDialog from './ExplanationDialog';
@@ -19,11 +18,6 @@ interface PDFViewerProps {
 }
 
 const PDFViewer = ({ url }: PDFViewerProps) => {
-  const [quizSettings, setQuizSettings] = useState({
-    numberOfQuestions: 3,
-    difficulty: 'medium'
-  });
-
   const {
     numPages,
     setNumPages,
@@ -38,14 +32,11 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
   } = usePDFState(url);
 
   const {
-    quizQuestions,
-    isQuizModalOpen,
-    setIsQuizModalOpen,
     showExplanationDialog,
     setShowExplanationDialog,
     explanationContent,
     handleGeminiAction
-  } = useGeminiActions(quizSettings);
+  } = useGeminiActions();
 
   const {
     getCurrentPageNote,
@@ -74,34 +65,8 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
     }
   };
 
-  const handleExplain = async (style: string, instructions?: string) => {
-    const pageText = await getPageText(currentPage);
-    if (pageText) {
-      // Always explain in Arabic, regardless of any other instructions
-      const arabicInstructions = 'اشرح هذا النص باللغة العربية بشكل مفصل ومفهوم';
-      handleGeminiAction('explain', pageText, { instructions: arabicInstructions });
-    }
-  };
-
-  const handleGenerateQuiz = async () => {
-    const pageText = await getPageText(currentPage);
-    if (pageText) {
-      handleGeminiAction('quiz', pageText, {
-        numberOfQuestions: quizSettings.numberOfQuestions,
-        difficulty: quizSettings.difficulty
-      });
-    }
-  };
-
   const handleSelectedTextTranslate = async (text: string) => {
     handleGeminiAction('translate', text, { language: 'Arabic' });
-  };
-
-  const handleSelectedTextExplain = async (text: string) => {
-    // Always explain selected text in Arabic
-    handleGeminiAction('explain', text, { 
-      instructions: 'اشرح هذا النص باللغة العربية بشكل مفصل ومفهوم'
-    });
   };
 
   const handleSaveContent = () => {
@@ -125,7 +90,6 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
           onLoadSuccess={onDocumentLoadSuccess}
           onLoadError={onDocumentLoadError}
           onTranslate={handleSelectedTextTranslate}
-          onExplain={handleSelectedTextExplain}
         />
 
         <PDFNotes
@@ -142,18 +106,8 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
             onZoomIn={handleZoomIn}
             onZoomOut={handleZoomOut}
             onTranslate={handleTranslate}
-            onExplain={handleExplain}
-            onGenerateQuiz={handleGenerateQuiz}
-            quizSettings={quizSettings}
-            onQuizSettingsChange={setQuizSettings}
           />
         )}
-
-        <QuizModal
-          isOpen={isQuizModalOpen}
-          onClose={() => setIsQuizModalOpen(false)}
-          questions={quizQuestions}
-        />
 
         <ExplanationDialog
           isOpen={showExplanationDialog}
