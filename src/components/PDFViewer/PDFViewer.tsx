@@ -77,9 +77,9 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
   const handleExplain = async (style: string, instructions?: string) => {
     const pageText = await getPageText(currentPage);
     if (pageText) {
-      // If no specific instructions are provided, use default Arabic explanation
-      const defaultInstructions = instructions || 'اشرح هذا النص باللغة العربية بشكل مفصل ومفهوم';
-      handleGeminiAction('explain', pageText, { instructions: defaultInstructions });
+      // Always explain in Arabic, regardless of any other instructions
+      const arabicInstructions = 'اشرح هذا النص باللغة العربية بشكل مفصل ومفهوم';
+      handleGeminiAction('explain', pageText, { instructions: arabicInstructions });
     }
   };
 
@@ -98,6 +98,7 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
   };
 
   const handleSelectedTextExplain = async (text: string) => {
+    // Always explain selected text in Arabic
     handleGeminiAction('explain', text, { 
       instructions: 'اشرح هذا النص باللغة العربية بشكل مفصل ومفهوم'
     });
