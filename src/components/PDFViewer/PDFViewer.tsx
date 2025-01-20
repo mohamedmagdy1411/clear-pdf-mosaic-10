@@ -41,7 +41,7 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
   const {
     getCurrentPageNote,
     handleSaveNote
-  } = useNotes(url, currentPage);
+  } = useNotes({ url, currentPage });
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
