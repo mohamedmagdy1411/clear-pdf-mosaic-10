@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { pdfjs } from 'react-pdf';
 import PDFControls from './PDFControls';
 import QuizModal from './QuizModal';
@@ -8,6 +8,7 @@ import ExplanationDialog from './ExplanationDialog';
 import { useGeminiActions } from './hooks/useGeminiActions';
 import { usePDFState } from './hooks/usePDFState';
 import { useNotes } from './hooks/useNotes';
+import { toast } from "@/hooks/use-toast";
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
