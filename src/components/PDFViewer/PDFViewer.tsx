@@ -274,6 +274,58 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
     setCurrentPage(newPage);
   };
 
+  const handleSelectedTextTranslate = async (text: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('gemini-ai', {
+        body: { 
+          text,
+          action: 'translate',
+          options: {
+            language: 'Arabic'
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      setExplanationContent(data.result);
+      setShowExplanationDialog(true);
+    } catch (error) {
+      console.error('Translation error:', error);
+      toast({
+        variant: "destructive",
+        title: "خطأ في الترجمة",
+        description: "حدث خطأ أثناء ترجمة النص. يرجى المحاولة مرة أخرى.",
+      });
+    }
+  };
+
+  const handleSelectedTextExplain = async (text: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('gemini-ai', {
+        body: { 
+          text,
+          action: 'explain',
+          options: {
+            style: 'simple'
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      setExplanationContent(data.result);
+      setShowExplanationDialog(true);
+    } catch (error) {
+      console.error('Explanation error:', error);
+      toast({
+        variant: "destructive",
+        title: "خطأ في الشرح",
+        description: "حدث خطأ أثناء شرح النص. يرجى المحاولة مرة أخرى.",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 pt-8 pb-24">
       <div className="max-w-5xl mx-auto px-4">
@@ -284,6 +336,8 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
           isLoading={isLoading}
           onLoadSuccess={onDocumentLoadSuccess}
           onLoadError={onDocumentLoadError}
+          onTranslate={handleSelectedTextTranslate}
+          onExplain={handleSelectedTextExplain}
         />
 
         <PDFNotes
