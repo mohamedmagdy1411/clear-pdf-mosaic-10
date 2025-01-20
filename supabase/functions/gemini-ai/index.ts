@@ -14,39 +14,45 @@ async function generateGeminiResponse(text: string, action: string, options?: { 
   switch (action) {
     case 'translate':
       const targetLanguage = options?.language || 'English'
-      prompt = `Translate the following text to ${targetLanguage}:\n\n${text}`
+      prompt = `Translate the following text to ${targetLanguage}. Make sure to maintain the original meaning and context:\n\n${text}`
       break
     case 'explain':
       const style = options?.style || 'simple'
       let stylePrompt = ''
       switch (style) {
         case 'technical':
-          stylePrompt = 'using technical terminology and detailed explanations'
+          stylePrompt = 'اشرح النص التالي بأسلوب تقني مع استخدام المصطلحات التخصصية والشرح المفصل'
           break
         case 'academic':
-          stylePrompt = 'in an academic style with formal language and citations where relevant'
+          stylePrompt = 'اشرح النص التالي بأسلوب أكاديمي رسمي مع ذكر المراجع إن وجدت'
+          break
+        case 'egyptian':
+          stylePrompt = 'اشرح النص التالي باللهجة المصرية العامية بشكل مبسط ومفهوم'
+          break
+        case 'arabic_formal':
+          stylePrompt = 'اشرح النص التالي باللغة العربية الفصحى بشكل رسمي ودقيق'
           break
         case 'simple':
         default:
-          stylePrompt = 'in simple terms that anyone can understand'
+          stylePrompt = 'اشرح النص التالي باللغة العربية بشكل مبسط يفهمه الجميع'
       }
-      prompt = `Explain the following text ${stylePrompt}:\n\n${text}`
+      prompt = `${stylePrompt}:\n\n${text}`
       break
     case 'quiz':
-      prompt = `Create 3 multiple choice questions based on this text. Format your response as a JSON array with exactly this structure, no additional text or explanation:
+      prompt = `قم بإنشاء 3 أسئلة اختيار من متعدد باللغة العربية بناءً على النص التالي. قم بتنسيق إجابتك كمصفوفة JSON بهذا الشكل بالضبط، بدون أي نص أو شرح إضافي:
 [
   {
-    "question": "Question text here?",
-    "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+    "question": "نص السؤال هنا؟",
+    "options": ["الخيار 1", "الخيار 2", "الخيار 3", "الخيار 4"],
     "correctIndex": 0
   }
 ]
-Make sure:
-- Generate exactly 3 questions
-- Each question has exactly 4 options
-- correctIndex is a number (0-3) indicating the correct option
-- The response is valid JSON
-Here's the text:\n\n${text}`
+تأكد من:
+- إنشاء 3 أسئلة بالضبط
+- كل سؤال له 4 خيارات بالضبط
+- correctIndex هو رقم (0-3) يشير إلى الخيار الصحيح
+- الإجابة هي JSON صالح
+هذا هو النص:\n\n${text}`
       break
     default:
       throw new Error('Invalid action')
@@ -78,13 +84,11 @@ Here's the text:\n\n${text}`
 
     if (action === 'quiz') {
       try {
-        // Clean the response to ensure it's valid JSON
         const cleanedResult = result.trim()
           .replace(/```json/g, '')
           .replace(/```/g, '')
           .trim()
         
-        // Parse and validate the quiz format
         const parsed = JSON.parse(cleanedResult)
         
         if (!Array.isArray(parsed)) {
@@ -124,7 +128,6 @@ Here's the text:\n\n${text}`
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
