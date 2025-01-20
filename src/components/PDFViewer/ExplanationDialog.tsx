@@ -1,12 +1,10 @@
 import React from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Download, Languages, MessageSquareText } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -38,19 +36,19 @@ const ExplanationDialog = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle className="text-right">
+    <Sheet open={isOpen} onOpenChange={onOpenChange} side="left">
+      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto" side="left">
+        <SheetHeader>
+          <SheetTitle className="text-right">
             {type === 'translation' ? 'الترجمة' : 'الشرح'}
-          </DialogTitle>
-        </DialogHeader>
-        <ScrollArea className="h-[50vh] w-full rounded-md border p-4">
-          <DialogDescription className="text-right whitespace-pre-wrap leading-relaxed">
+          </SheetTitle>
+        </SheetHeader>
+        <ScrollArea className="h-[calc(100vh-200px)] mt-6 w-full rounded-md border p-4">
+          <div className="text-right whitespace-pre-wrap leading-relaxed">
             {formatContent(content)}
-          </DialogDescription>
+          </div>
         </ScrollArea>
-        <DialogFooter className="mt-4 flex gap-2 sm:justify-start">
+        <div className="mt-6 flex gap-2 justify-end">
           <Button onClick={onSaveContent} className="gap-2">
             <Download className="h-4 w-4" />
             حفظ كملف
@@ -63,9 +61,9 @@ const ExplanationDialog = ({
             )}
             حفظ كملاحظة
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
