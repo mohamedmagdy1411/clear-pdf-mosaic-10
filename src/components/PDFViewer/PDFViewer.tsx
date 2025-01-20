@@ -36,7 +36,10 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
     setShowExplanationDialog,
     explanationContent,
     handleGeminiAction
-  } = useGeminiActions();
+  } = useGeminiActions({
+    numberOfQuestions: 5,
+    difficulty: 'medium'
+  });
 
   const {
     getCurrentPageNote,

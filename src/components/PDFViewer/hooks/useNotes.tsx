@@ -11,7 +11,12 @@ interface PageNote {
   notes: Note[];
 }
 
-export const useNotes = (url: string, currentPage: number) => {
+interface UseNotesProps {
+  url: string;
+  currentPage: number;
+}
+
+export const useNotes = ({ url, currentPage }: UseNotesProps) => {
   const [pageNotes, setPageNotes] = useState<PageNote[]>(() => {
     const savedState = localStorage.getItem(`pdf-state-${url}`);
     return savedState ? JSON.parse(savedState).pageNotes : [];
