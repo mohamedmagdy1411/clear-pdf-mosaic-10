@@ -132,28 +132,19 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
 
       console.log('Sending request with options:', options);
 
-      // Add default Arabic instructions for explanations and use the actual number of questions
-      const enhancedOptions = {
-        ...options,
-        instructions: action === 'explain' ? 
-          'اشرح هذا النص باللغة العربية بشكل مفصل ومفهوم' : 
-          options?.instructions,
-        numberOfQuestions: options?.numberOfQuestions || quizSettings.numberOfQuestions,
-        difficulty: options?.difficulty || quizSettings.difficulty
-      };
-
       const { data, error } = await supabase.functions.invoke('gemini-ai', {
         body: { 
           text: pageText,
           action,
-          options: enhancedOptions
+          options: {
+            ...options,
+            numberOfQuestions: options?.numberOfQuestions || quizSettings.numberOfQuestions,
+            difficulty: options?.difficulty || quizSettings.difficulty
+          }
         }
       });
 
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       if (action === 'quiz') {
         try {
@@ -265,10 +256,17 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
   const handleTranslate = (language: string, instructions?: string) => 
     handleGeminiAction('translate', { language, instructions });
     
-  const handleExplain = (style: string, instructions?: string) => 
-    handleGeminiAction('explain', { style, instructions });
+  const handleExplain = (style: string, instructions?: string) => {
+    const arabicInstructions = 'اشرح هذا النص باللغة العربية بشكل مفصل ومفهوم';
+    handleGeminiAction('explain', { instructions: arabicInstructions });
+  };
     
-  const handleGenerateQuiz = () => handleGeminiAction('quiz');
+  const handleGenerateQuiz = () => {
+    handleGeminiAction('quiz', {
+      numberOfQuestions: quizSettings.numberOfQuestions,
+      difficulty: quizSettings.difficulty
+    });
+  };
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
