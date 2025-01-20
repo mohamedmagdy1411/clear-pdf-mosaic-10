@@ -37,12 +37,10 @@ const LANGUAGES = [
   'Chinese', 'Japanese', 'Korean', 'Russian', 'Hindi'
 ];
 
-const EXPLANATION_STYLES = [
-  { label: 'Simple', value: 'simple' },
-  { label: 'Technical', value: 'technical' },
-  { label: 'Academic', value: 'academic' },
-  { label: 'Egyptian Dialect', value: 'egyptian' },
-  { label: 'Arabic Formal', value: 'arabic_formal' }
+const QUIZ_DIFFICULTIES = [
+  { label: 'سهل', value: 'easy' },
+  { label: 'متوسط', value: 'medium' },
+  { label: 'صعب', value: 'hard' }
 ];
 
 interface PDFControlsProps {
@@ -62,12 +60,6 @@ interface PDFControlsProps {
   onQuizSettingsChange: (settings: { numberOfQuestions: number; difficulty: string }) => void;
 }
 
-const QUIZ_DIFFICULTIES = [
-  { label: 'سهل', value: 'easy' },
-  { label: 'متوسط', value: 'medium' },
-  { label: 'صعب', value: 'hard' }
-];
-
 const PDFControls = ({
   numPages,
   currentPage,
@@ -82,7 +74,6 @@ const PDFControls = ({
   onQuizSettingsChange
 }: PDFControlsProps) => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
-  const [selectedStyle, setSelectedStyle] = useState<string>('');
   const [translationInstructions, setTranslationInstructions] = useState('');
   const [explanationInstructions, setExplanationInstructions] = useState('');
 
@@ -100,8 +91,8 @@ const PDFControls = ({
   };
 
   const handleExplainClick = () => {
-    if (selectedStyle) {
-      onExplain(selectedStyle, explanationInstructions);
+    if (explanationInstructions) {
+      onExplain('custom', explanationInstructions);
     }
   };
 
@@ -175,21 +166,9 @@ const PDFControls = ({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">نمط الشرح</label>
-                  <Select onValueChange={setSelectedStyle} value={selectedStyle}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر النمط" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EXPLANATION_STYLES.map((style) => (
-                        <SelectItem key={style.value} value={style.value}>
-                          {style.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm font-medium">تعليمات الشرح</label>
                   <Textarea
-                    placeholder="أدخل أي تعليمات خاصة بالشرح..."
+                    placeholder="اكتب كيف تريد أن يتم الشرح (مثال: اشرح باللهجة المصرية)"
                     value={explanationInstructions}
                     onChange={(e) => setExplanationInstructions(e.target.value)}
                     className="mt-2"
@@ -261,7 +240,7 @@ const PDFControls = ({
                 variant="outline" 
                 size="icon"
                 onClick={handleExplainClick}
-                disabled={!selectedStyle}
+                disabled={!explanationInstructions}
               >
                 <MessageSquareText className="h-4 w-4" />
               </Button>
