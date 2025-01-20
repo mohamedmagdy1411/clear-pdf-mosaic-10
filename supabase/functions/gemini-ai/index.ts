@@ -8,7 +8,12 @@ const corsHeaders = {
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
 const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
 
-async function generateGeminiResponse(text: string, action: string, options?: { language?: string, style?: string }) {
+async function generateGeminiResponse(text: string, action: string, options?: { 
+  language?: string, 
+  instructions?: string,
+  numberOfQuestions?: number,
+  difficulty?: string 
+}) {
   let prompt = ''
   
   switch (action) {
@@ -17,40 +22,39 @@ async function generateGeminiResponse(text: string, action: string, options?: { 
       prompt = `Translate the following text to ${targetLanguage}. Make sure to maintain the original meaning and context:\n\n${text}`
       break
     case 'explain':
-      const style = options?.style || 'simple'
-      let stylePrompt = ''
-      switch (style) {
-        case 'technical':
-          stylePrompt = 'اشرح النص التالي بأسلوب تقني مع استخدام المصطلحات التخصصية والشرح المفصل'
-          break
-        case 'academic':
-          stylePrompt = 'اشرح النص التالي بأسلوب أكاديمي رسمي مع ذكر المراجع إن وجدت'
-          break
-        case 'egyptian':
-          stylePrompt = 'اشرح النص التالي باللهجة المصرية العامية بشكل مبسط ومفهوم'
-          break
-        case 'arabic_formal':
-          stylePrompt = 'اشرح النص التالي باللغة العربية الفصحى بشكل رسمي ودقيق'
-          break
-        case 'simple':
-        default:
-          stylePrompt = 'اشرح النص التالي باللغة العربية بشكل مبسط يفهمه الجميع'
-      }
-      prompt = `${stylePrompt}:\n\n${text}`
+      const instructions = options?.instructions || 'اشرح هذا النص باللغة العربية بشكل مفصل ومفهوم'
+      prompt = `${instructions}:\n\n${text}`
       break
     case 'quiz':
-      prompt = `قم بإنشاء 3 أسئلة اختيار من متعدد باللغة العربية بناءً على النص التالي. قم بتنسيق إجابتك كمصفوفة JSON بهذا الشكل بالضبط، بدون أي نص أو شرح إضافي:
+      const numQuestions = options?.numberOfQuestions || 3
+      const difficulty = options?.difficulty || 'medium'
+      
+      let difficultyPrompt = ''
+      switch (difficulty) {
+        case 'easy':
+          difficultyPrompt = 'بسيطة وسهلة الفهم'
+          break
+        case 'hard':
+          difficultyPrompt = 'متقدمة وتتطلب تفكيراً عميقاً'
+          break
+        default:
+          difficultyPrompt = 'متوسطة المستوى'
+      }
+
+      prompt = `قم بإنشاء ${numQuestions} أسئلة اختيار من متعدد باللغة العربية بناءً على النص التالي. الأسئلة يجب أن تكون ${difficultyPrompt}. قم بتنسيق إجابتك كمصفوفة JSON بهذا الشكل بالضبط، بدون أي نص أو شرح إضافي:
 [
   {
     "question": "نص السؤال هنا؟",
     "options": ["الخيار 1", "الخيار 2", "الخيار 3", "الخيار 4"],
-    "correctIndex": 0
+    "correctIndex": 0,
+    "explanation": "شرح لماذا هذه الإجابة صحيحة"
   }
 ]
 تأكد من:
-- إنشاء 3 أسئلة بالضبط
+- إنشاء ${numQuestions} أسئلة بالضبط
 - كل سؤال له 4 خيارات بالضبط
 - correctIndex هو رقم (0-3) يشير إلى الخيار الصحيح
+- إضافة شرح لكل إجابة صحيحة
 - الإجابة هي JSON صالح
 هذا هو النص:\n\n${text}`
       break
@@ -96,9 +100,9 @@ async function generateGeminiResponse(text: string, action: string, options?: { 
           throw new Error('Quiz response is not an array')
         }
         
-        if (parsed.length !== 3) {
-          console.error('Quiz response does not contain exactly 3 questions:', parsed)
-          throw new Error('Quiz must contain exactly 3 questions')
+        if (parsed.length !== numQuestions) {
+          console.error(`Quiz response does not contain exactly ${numQuestions} questions:`, parsed)
+          throw new Error(`Quiz must contain exactly ${numQuestions} questions`)
         }
         
         parsed.forEach((q, index) => {
