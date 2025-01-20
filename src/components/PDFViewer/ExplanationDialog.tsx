@@ -36,7 +36,7 @@ const ExplanationDialog = ({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onOpenChange} side="left">
+    <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto" side="left">
         <SheetHeader>
           <SheetTitle className="text-right">
