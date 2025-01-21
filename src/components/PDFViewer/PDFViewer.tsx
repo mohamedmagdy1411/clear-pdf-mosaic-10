@@ -18,6 +18,9 @@ interface PDFViewerProps {
 }
 
 const PDFViewer = ({ url }: PDFViewerProps) => {
+  // Sanitize the URL by removing any trailing colons
+  const sanitizedUrl = url.replace(/:\/?$/, '');
+
   const {
     numPages,
     setNumPages,
@@ -29,7 +32,7 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
     handleZoomIn,
     handleZoomOut,
     getPageText
-  } = usePDFState(url);
+  } = usePDFState(sanitizedUrl);
 
   const {
     showExplanationDialog,
@@ -44,7 +47,10 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
   const {
     getCurrentPageNote,
     handleSaveNote
-  } = useNotes({ url, currentPage });
+  } = useNotes({ 
+    url: sanitizedUrl, 
+    currentPage 
+  });
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -86,7 +92,7 @@ const PDFViewer = ({ url }: PDFViewerProps) => {
     <div className="min-h-screen bg-gray-100 pt-8 pb-24">
       <div className="max-w-5xl mx-auto px-4">
         <PDFDocument
-          url={url}
+          url={sanitizedUrl}
           currentPage={currentPage}
           scale={scale}
           isLoading={isLoading}
